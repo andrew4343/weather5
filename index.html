@@ -1,106 +1,111 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>The Villages Live Weather</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Villages Weather</title>
+
 <style>
   body {
     margin: 0;
-    background: #071a2f;
-    font-family: Arial, sans-serif;
-    color: white;
+    padding: 0;
+    background: rgba(0,0,0,0); /* TRANSPARENT */
+    font-family: "Segoe UI", Arial, sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
   }
-  .weather {
+
+  .weather-box {
     text-align: center;
-    background: linear-gradient(135deg, #0f3b5a, #22c1c3);
-    padding: 22px 30px;
-    border-radius: 20px;
-    width: 100%;
-    max-width: 380px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    padding: 15px 25px;
+    border-radius: 18px;
+    background: rgba(0,0,0,0); /* FULLY TRANSPARENT */
+    color: white;
+    text-shadow: 0px 0px 12px rgba(0,0,0,0.7); /* glow for visibility */
   }
+
   .temp {
     font-size: 78px;
     font-weight: 900;
-    margin: 0;
-  }
-  .loc {
-    font-size: 24px;
-    font-weight: 700;
     margin-bottom: 4px;
   }
-  .desc {
-    font-size: 20px;
-    margin-top: 4px;
+
+  .location {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 4px;
   }
-  .meta {
-    font-size: 15px;
-    margin-top: 8px;
+
+  .condition {
+    font-size: 26px;
+    font-weight: 600;
+    margin-bottom: 8px;
   }
-  .small {
-    opacity: 0.85;
+
+  .detail {
+    font-size: 18px;
+    opacity: 0.9;
   }
 </style>
 </head>
 <body>
 
-<div class="weather">
-  <div class="loc">The Villages, FL</div>
+<div class="weather-box">
   <div id="temp" class="temp">--°</div>
-  <div id="desc" class="desc">Loading…</div>
-  <div class="meta small" id="feels">Feels: —</div>
-  <div class="meta small" id="wind">Wind: —</div>
-  <div class="meta small" id="hum">Humidity: —</div>
-  <div class="meta small" id="updated">Updated: —</div>
+  <div class="location">The Villages, FL</div>
+  <div id="cond" class="condition">Loading…</div>
+  <div id="wind" class="detail">Wind: —</div>
+  <div id="updated" class="detail">Updated: —</div>
 </div>
 
 <script>
-async function fetchWeather() {
+async function loadWeather() {
   try {
-    const url = "https://api.open-meteo.com/v1/forecast?latitude=28.927&longitude=-81.972&current_weather=true&timezone=auto";
-    const resp = await fetch(url);
-    const data = await resp.json();
+    const api = "https://api.open-meteo.com/v1/forecast?latitude=28.927&longitude=-81.972&current_weather=true&timezone=auto";
+    const res = await fetch(api);
+    const data = await res.json();
+
     const w = data.current_weather;
 
     const tempF = Math.round((w.temperature * 9/5) + 32);
+    const windM = Math.round(w.windspeed * 2.23694);
     const code = w.weathercode;
-    const windMph = Math.round(w.windspeed * 2.23694);
 
     const descMap = {
       0: "Clear ☀️",
-      1: "Mainly Clear 🌤️",
+      1: "Mostly Clear 🌤️",
       2: "Partly Cloudy ⛅",
       3: "Cloudy ☁️",
       45: "Fog 🌫️",
-      48: "Fog 🌁",
+      48: "Fog 🌫️",
       51: "Light Drizzle 🌦️",
-      61: "Light Rain 🌧️",
+      61: "Rain 🌧️",
       63: "Rain 🌧️",
       65: "Heavy Rain ⛈️",
       80: "Showers 🌦️",
-      95: "Thunderstorm ⛈️"
+      95: "Storm ⛈️"
     };
 
     document.getElementById("temp").textContent = tempF + "°";
-    document.getElementById("desc").textContent = descMap[code] || "Weather";
-    document.getElementById("feels").textContent = "Feels: " + tempF + "°F";
-    document.getElementById("wind").textContent = "Wind: " + windMph + " mph";
-    document.getElementById("hum").textContent = "Humidity: --%";
-    document.getElementById("updated").textContent = "Updated: " + new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-  } catch (e) {
-    document.getElementById("desc").textContent = "Error loading";
-    document.getElementById("updated").textContent = "Updated: —";
+    document.getElementById("cond").textContent = descMap[code] || "Weather";
+    document.getElementById("wind").textContent = "Wind: " + windM + " mph";
+
+    const now = new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+    document.getElementById("updated").textContent = "Updated: " + now;
+
+  } catch (err) {
+    document.getElementById("cond").textContent = "Error loading";
   }
 }
 
-// first load and then auto-refresh
-fetchWeather();
-setInterval(fetchWeather, 300000); // every 5 min
+// Load on start + every 5 min
+loadWeather();
+setInterval(loadWeather, 300000);
 </script>
 
 </body>
